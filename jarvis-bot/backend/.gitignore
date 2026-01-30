@@ -1,0 +1,5 @@
+﻿node_modules/
+.env
+*.sqlite
+*.log
+audio_cache/*.mp3
