@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
-import { sendMessage, playAudio, checkHealth } from '@/services/jarvisService';
+import { sendMessage, checkHealth } from '@/services/jarvisService';
 import JarvisOrb from './JarvisOrb';
 import JarvisHeader from './JarvisHeader';
 import JarvisMessages from './JarvisMessages';
@@ -12,7 +12,6 @@ export default function JarvisInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isVoiceMode, setIsVoiceMode] = useState(false);
-  const [voiceResponseEnabled, setVoiceResponseEnabled] = useState(false);
   const [isBackendOnline, setIsBackendOnline] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -34,17 +33,14 @@ export default function JarvisInterface() {
     clearTranscript,
   } = useSpeechRecognition({
     onWakeWordDetected: () => {
-      console.log('🎙️ Wake word detectada!');
       setState('listening');
     },
     onResult: (text) => {
-      console.log('📝 Texto recebido:', text);
       if (text.trim()) {
-        handleSendMessage(text, voiceResponseEnabled);
+        handleSendMessage(text);
       }
     },
     onError: (error) => {
-      console.error('❌ Erro de voz:', error);
       setState('error');
       setTimeout(() => setState('idle'), 3000);
     },
@@ -54,7 +50,7 @@ export default function JarvisInterface() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, state]);
 
-  const handleSendMessage = async (text: string, useVoice: boolean = false) => {
+  const handleSendMessage = async (text: string) => {
     if (!text.trim()) return;
 
     const userMessage: Message = {
@@ -69,8 +65,7 @@ export default function JarvisInterface() {
     setState('processing');
 
     try {
-      console.log('📤 Enviando mensagem com useVoice:', useVoice);
-      const response = await sendMessage(text, useVoice);
+      const response = await sendMessage(text, false);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -80,17 +75,8 @@ export default function JarvisInterface() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-
-      if (useVoice && response.audioUrl) {
-        console.log('🔊 Reproduzindo áudio:', response.audioUrl);
-        setState('speaking');
-        await playAudio(response.audioUrl);
-      }
-
       setState(isVoiceMode ? 'listening' : 'idle');
     } catch (error) {
-      console.error('❌ Erro:', error);
-      
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -115,11 +101,6 @@ export default function JarvisInterface() {
     }
   };
 
-  const handleToggleVoiceResponse = () => {
-    setVoiceResponseEnabled(!voiceResponseEnabled);
-    console.log('🔊 Resposta com voz:', !voiceResponseEnabled ? 'ATIVADA' : 'DESATIVADA');
-  };
-
   const handleSendVoiceMessage = () => {
     if (transcript.trim()) {
       sendCurrentTranscript();
@@ -127,7 +108,6 @@ export default function JarvisInterface() {
   };
 
   const handleCancelVoiceMessage = () => {
-    console.log('🛑 Cancelando gravação...');
     clearTranscript();
     setState('listening');
   };
@@ -135,7 +115,7 @@ export default function JarvisInterface() {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage(inputValue, voiceResponseEnabled);
+      handleSendMessage(inputValue);
     }
   };
 
@@ -172,15 +152,13 @@ export default function JarvisInterface() {
           <JarvisInput
             value={inputValue}
             onChange={setInputValue}
-            onSend={() => handleSendMessage(inputValue, voiceResponseEnabled)}
+            onSend={() => handleSendMessage(inputValue)}
             onKeyPress={handleKeyPress}
             isVoiceMode={isVoiceMode}
             onToggleVoice={handleToggleVoice}
             state={state}
             onSendVoice={handleSendVoiceMessage}
             onCancelVoice={handleCancelVoiceMessage}
-            voiceResponseEnabled={voiceResponseEnabled}
-            onToggleVoiceResponse={handleToggleVoiceResponse}
           />
         </div>
       </div>

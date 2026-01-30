@@ -1,8 +1,7 @@
-﻿const ConversationModel = require('../models/conversation.model');
+const ConversationModel = require('../models/conversation.model');
 const ContextModel = require('../models/context.model');
 const UserModel = require('../models/user.model');
 const groqService = require('./groq.service');
-const elevenLabsService = require('./elevenlabs.service');
 const { CONVERSATION_CONFIG } = require('../config/ai-config');
 
 class ConversationService {
@@ -20,16 +19,8 @@ class ConversationService {
             
             await ConversationModel.saveMessage(userId, message, response);
             
-            let audioData = null;
-            if (useVoice && elevenLabsService.isConfigured()) {
-                try {
-                    audioData = await elevenLabsService.textToSpeech(response);
-                } catch (audioError) {
-                    console.error('Erro ao gerar áudio:', audioError);
-                }
-            }
-            
-            return { response: response, audioUrl: audioData?.url || null, usage: usage };
+            // Áudio removido - apenas texto
+            return { response: response, audioUrl: null, usage: usage };
         } catch (error) {
             console.error('Erro ao processar mensagem:', error);
             throw error;
