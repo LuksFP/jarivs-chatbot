@@ -1,4 +1,4 @@
-import { Send, Mic, MicOff, Loader2, X, Volume2, VolumeX } from 'lucide-react';
+import { Send, Mic, MicOff, Loader2, X, Shield, ShieldOff } from 'lucide-react';
 import type { JarvisState } from '@/types/jarvis';
 
 interface JarvisInputProps {
@@ -11,8 +11,9 @@ interface JarvisInputProps {
   state: JarvisState;
   onSendVoice?: () => void;
   onCancelVoice?: () => void;
-  voiceResponseEnabled?: boolean;
-  onToggleVoiceResponse?: () => void;
+  wakeWordEnabled?: boolean;
+  onToggleWakeWord?: () => void;
+  hasTranscript?: boolean;
 }
 
 export default function JarvisInput({ 
@@ -25,8 +26,9 @@ export default function JarvisInput({
   state, 
   onSendVoice,
   onCancelVoice,
-  voiceResponseEnabled = false,
-  onToggleVoiceResponse
+  wakeWordEnabled = true,
+  onToggleWakeWord,
+  hasTranscript = false
 }: JarvisInputProps) {
   const isDisabled = state === 'processing' || state === 'speaking';
   const isListening = state === 'listening';
@@ -52,21 +54,6 @@ export default function JarvisInput({
           )}
         </div>
         
-        {onToggleVoiceResponse && (
-          <button 
-            onClick={onToggleVoiceResponse}
-            disabled={isDisabled}
-            className={
-              voiceResponseEnabled
-                ? 'bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-2xl shadow-xl shadow-purple-400/50 border-2 border-purple-300 transition-all duration-300 hover:scale-105 active:scale-95'
-                : 'bg-gray-800/70 border-2 border-gray-700/50 text-gray-400 hover:text-purple-400 hover:border-purple-400/50 p-4 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-30'
-            }
-            title={voiceResponseEnabled ? 'Desativar resposta com voz' : 'Ativar resposta com voz'}
-          >
-            {voiceResponseEnabled ? <Volume2 size={22} /> : <VolumeX size={22} />}
-          </button>
-        )}
-        
         <button 
           onClick={onSend} 
           disabled={isDisabled || !value.trim() || isVoiceMode} 
@@ -76,7 +63,7 @@ export default function JarvisInput({
           {state === 'processing' ? <Loader2 size={22} className="animate-spin" /> : <Send size={22} />}
         </button>
         
-        {isVoiceMode && isListening && (
+        {isVoiceMode && isListening && hasTranscript && (
           <>
             {onSendVoice && (
               <button 
@@ -102,6 +89,21 @@ export default function JarvisInput({
           </>
         )}
         
+        {onToggleWakeWord && isVoiceMode && (
+          <button 
+            onClick={onToggleWakeWord}
+            disabled={isDisabled}
+            className={
+              wakeWordEnabled
+                ? 'bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-2xl shadow-xl shadow-purple-400/50 border-2 border-purple-300 transition-all duration-300 hover:scale-105 active:scale-95'
+                : 'bg-gray-800/70 border-2 border-gray-700/50 text-gray-400 hover:text-purple-400 hover:border-purple-400/50 p-4 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95'
+            }
+            title={wakeWordEnabled ? 'Wake Word: ATIVADA (clique para desativar)' : 'Wake Word: DESATIVADA (clique para ativar)'}
+          >
+            {wakeWordEnabled ? <Shield size={22} /> : <ShieldOff size={22} />}
+          </button>
+        )}
+        
         <button 
           onClick={onToggleVoice} 
           disabled={isDisabled} 
@@ -117,17 +119,6 @@ export default function JarvisInput({
         
       </div>
       
-      {voiceResponseEnabled && !isVoiceMode && (
-        <div className="mt-5 p-3 bg-gradient-to-r from-purple-500/10 via-purple-400/10 to-purple-500/10 border border-purple-400/30 rounded-2xl backdrop-blur-sm animate-fade-in">
-          <div className="flex items-center justify-center gap-2">
-            <Volume2 className="w-4 h-4 text-purple-400" />
-            <p className="text-purple-400 text-xs font-rajdhani font-bold uppercase tracking-wider">
-              Respostas com voz ativadas
-            </p>
-          </div>
-        </div>
-      )}
-      
       {isVoiceMode && (
         <div className="mt-5 p-4 bg-gradient-to-r from-yellow-500/10 via-yellow-400/10 to-yellow-500/10 border border-yellow-400/30 rounded-2xl backdrop-blur-sm animate-fade-in">
           <div className="flex items-center justify-between gap-3">
@@ -141,7 +132,7 @@ export default function JarvisInput({
               </p>
             </div>
             
-            {isListening && (
+            {isListening && hasTranscript && (
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-xs text-green-300 font-rajdhani">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -155,6 +146,20 @@ export default function JarvisInput({
               </div>
             )}
           </div>
+          
+          {wakeWordEnabled && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-purple-300 font-rajdhani">
+              <Shield className="w-3 h-3" />
+              <span>Wake Word ativada - Diga "JARVIS" na primeira mensagem</span>
+            </div>
+          )}
+          
+          {!wakeWordEnabled && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-gray-400 font-rajdhani">
+              <ShieldOff className="w-3 h-3" />
+              <span>Wake Word desativada - Pode falar direto!</span>
+            </div>
+          )}
         </div>
       )}
     </div>
