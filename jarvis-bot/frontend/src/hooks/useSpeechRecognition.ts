@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { SpeechRecognitionOptions } from '@/types/jarvis';
 
 export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
@@ -6,175 +6,239 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
   const [transcript, setTranscript] = useState('');
   const [currentTranscript, setCurrentTranscript] = useState('');
   const [wakeWordEnabled, setWakeWordEnabled] = useState(true);
+  const [isWakeWordActive, setIsWakeWordActive] = useState(false);
+  
   const recognitionRef = useRef<any>(null);
-  const wakeWordDetected = useRef(false);
-  const sessionActive = useRef(false);
+  const isStartingRef = useRef(false);
+  const shouldRestartRef = useRef(false);
 
-  const WAKE_WORDS = ['jarvis', 'jarviz', 'jarves', 'oi jarvis', 'ei jarvis', 'hey jarvis'];
-
-  const hasWakeWord = (text: string) => {
-    return WAKE_WORDS.some(word => text.toLowerCase().includes(word));
-  };
-
-  const removeWakeWords = (text: string) => {
-    let cleaned = text.toLowerCase();
-    WAKE_WORDS.forEach(word => {
-      cleaned = cleaned.replace(word, '');
-    });
-    return cleaned.trim();
-  };
-
-  const handleFinalTranscript = (text: string) => {
-    const lowerText = text.toLowerCase().trim();
-    console.log('📝 Transcript final:', lowerText);
-
-    // Wake word desabilitada - aceita tudo
-    if (!wakeWordEnabled) {
-      console.log('💬 Wake word OFF - aceitando:', text);
-      setTranscript(text);
-      return;
-    }
-
-    // Sessão já ativa - aceita tudo
-    if (sessionActive.current) {
-      console.log('💬 Sessão ativa:', text);
-      setTranscript(text);
-      return;
-    }
-
-    // Precisa de wake word e ainda não detectou
-    if (!hasWakeWord(lowerText)) return;
-
-    console.log('🎯 Wake word detectada!');
-    wakeWordDetected.current = true;
-    sessionActive.current = true;
-    options.onWakeWordDetected?.();
-
-    const cleaned = removeWakeWords(lowerText);
-    setTranscript(cleaned || '');
-  };
-
+  // Inicializar Speech Recognition
   useEffect(() => {
-    console.log('🔧 Inicializando Speech Recognition...');
+    if (typeof window === 'undefined') return;
     
-    const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     
-    if (!SpeechRecognitionAPI) {
-      console.error('❌ Speech Recognition não suportado');
+    if (!SpeechRecognition) {
+      console.error('❌ Speech Recognition nao suportado neste navegador');
       return;
     }
 
-    recognitionRef.current = new SpeechRecognitionAPI();
-    recognitionRef.current.continuous = true;
-    recognitionRef.current.interimResults = true;
-    recognitionRef.current.lang = 'pt-BR';
-    recognitionRef.current.maxAlternatives = 1;
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'pt-BR';
+    recognition.maxAlternatives = 1;
 
-    console.log('✅ Speech Recognition configurado!');
+    recognition.onstart = () => {
+      console.log('🎤 Reconhecimento iniciado');
+      setIsListening(true);
+      isStartingRef.current = false;
+    };
 
-    recognitionRef.current.onstart = () => console.log('🎤 Reconhecimento iniciado');
-    
-    recognitionRef.current.onend = () => {
+    recognition.onresult = (event: any) => {
+      let finalText = '';
+      let interimText = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        const text = result[0].transcript;
+
+        if (result.isFinal) {
+          finalText += text;
+        } else {
+          interimText += text;
+        }
+      }
+
+      const fullText = (finalText + interimText).toLowerCase().trim();
+      console.log('📝 Ouvido:', fullText);
+
+      // Verificar wake word
+      const wakeWords = ['jarvis', 'oi jarvis', 'ei jarvis', 'hey jarvis', 'ola jarvis'];
+      const hasWakeWord = wakeWords.some(word => fullText.includes(word));
+
+      if (wakeWordEnabled && hasWakeWord && !isWakeWordActive) {
+        console.log('🔔 Wake word detectada!');
+        setIsWakeWordActive(true);
+        if (options.onWakeWordDetected) {
+          options.onWakeWordDetected();
+        }
+      }
+
+      // Atualizar transcricao
+      if (wakeWordEnabled) {
+        if (isWakeWordActive) {
+          // Remover wake words do texto
+          let cleanText = fullText;
+          wakeWords.forEach(word => {
+            cleanText = cleanText.replace(new RegExp(word, 'gi'), '').trim();
+          });
+          
+          if (interimText) {
+            setCurrentTranscript(cleanText);
+          }
+          
+          if (finalText && cleanText) {
+            console.log('✅ Texto final:', cleanText);
+            setTranscript(cleanText);
+            setCurrentTranscript(cleanText);
+          }
+        }
+      } else {
+        // Modo livre - sem wake word
+        if (interimText) {
+          setCurrentTranscript(fullText);
+        }
+        
+        if (finalText) {
+          console.log('✅ Texto final (modo livre):', finalText);
+          setTranscript(finalText.trim());
+          setCurrentTranscript(finalText.trim());
+        }
+      }
+    };
+
+    recognition.onerror = (event: any) => {
+      console.log('❌ Erro:', event.error);
+      isStartingRef.current = false;
+      
+      // Ignorar erro no-speech (normal quando ninguem fala)
+      if (event.error === 'no-speech') {
+        return;
+      }
+      
+      // Ignorar erro aborted (quando paramos manualmente)
+      if (event.error === 'aborted') {
+        return;
+      }
+
+      if (options.onError) {
+        options.onError(event.error);
+      }
+    };
+
+    recognition.onend = () => {
       console.log('🛑 Reconhecimento encerrado');
-      if (isListening) {
+      setIsListening(false);
+      isStartingRef.current = false;
+      
+      // Reiniciar automaticamente se necessario
+      if (shouldRestartRef.current && recognitionRef.current) {
+        console.log('🔄 Reiniciando automaticamente...');
         setTimeout(() => {
-          try {
-            recognitionRef.current?.start();
-          } catch {}
+          if (shouldRestartRef.current && !isStartingRef.current) {
+            try {
+              isStartingRef.current = true;
+              recognitionRef.current.start();
+            } catch (e) {
+              console.log('⚠️ Ja estava ativo');
+              isStartingRef.current = false;
+            }
+          }
         }, 100);
       }
     };
 
-    recognitionRef.current.onresult = (event: any) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
-      
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const text = event.results[i][0].transcript;
-        event.results[i].isFinal ? finalTranscript += text : interimTranscript += text;
-      }
-
-      setCurrentTranscript(interimTranscript || finalTranscript);
-      
-      if (finalTranscript) {
-        handleFinalTranscript(finalTranscript);
-      }
-    };
-
-    recognitionRef.current.onerror = (event: any) => {
-      console.error('❌ Erro:', event.error);
-      if (event.error === 'not-allowed') {
-        alert('⚠️ Permissão de microfone negada!');
-      }
-      options.onError?.(event.error);
-    };
+    recognitionRef.current = recognition;
+    console.log('✅ Speech Recognition configurado');
 
     return () => {
-      try {
-        recognitionRef.current?.stop();
-      } catch {}
+      shouldRestartRef.current = false;
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (e) {
+          // Ignorar
+        }
+      }
     };
-  }, [wakeWordEnabled]);
+  }, [wakeWordEnabled, isWakeWordActive, options]);
 
-  const startListening = () => {
-    if (!recognitionRef.current || isListening) return;
-    
-    console.log('🎤 Iniciando escuta...');
-    setIsListening(true);
-    setTranscript('');
-    setCurrentTranscript('');
-    
-    wakeWordDetected.current = !wakeWordEnabled;
-    sessionActive.current = !wakeWordEnabled;
-    
-    try {
-      recognitionRef.current.start();
-      console.log('✅ Escuta iniciada!');
-    } catch (error) {
-      console.error('❌ Erro ao iniciar:', error);
-      setIsListening(false);
+  const startListening = useCallback(async () => {
+    if (!recognitionRef.current) {
+      console.error('❌ Recognition nao inicializado');
+      return false;
     }
-  };
 
-  const stopListening = () => {
-    if (!recognitionRef.current || !isListening) return;
-    
-    console.log('🛑 Parando escuta...');
-    setIsListening(false);
-    wakeWordDetected.current = false;
-    sessionActive.current = false;
-    
+    if (isStartingRef.current || isListening) {
+      console.log('⚠️ Ja esta escutando ou iniciando');
+      return true;
+    }
+
     try {
-      recognitionRef.current.stop();
-    } catch {}
-  };
+      console.log('🎤 Iniciando escuta...');
+      
+      // Solicitar permissao do microfone
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('✅ Microfone autorizado');
+      
+      shouldRestartRef.current = true;
+      isStartingRef.current = true;
+      recognitionRef.current.start();
+      
+      return true;
+    } catch (error: any) {
+      console.error('❌ Erro ao iniciar:', error);
+      isStartingRef.current = false;
+      
+      if (options.onError) {
+        options.onError(error?.message || 'Erro desconhecido');
+      }
+      return false;
+    }
+  }, [isListening, options]);
 
-  const sendCurrentTranscript = () => {
-    if (!transcript.trim()) return;
+  const stopListening = useCallback(() => {
+    console.log('🛑 Parando escuta...');
+    shouldRestartRef.current = false;
+    isStartingRef.current = false;
     
-    console.log('📤 Enviando transcript:', transcript);
-    options.onResult?.(transcript);
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch (e) {
+        // Ignorar
+      }
+    }
+    
+    setIsListening(false);
+    setIsWakeWordActive(false);
+    setCurrentTranscript('');
+  }, []);
+
+  const sendCurrentTranscript = useCallback(() => {
+    if (transcript.trim() && options.onResult) {
+      console.log('📤 Enviando:', transcript);
+      options.onResult(transcript);
+      setTranscript('');
+      setCurrentTranscript('');
+      setIsWakeWordActive(false);
+    }
+  }, [transcript, options]);
+
+  const clearTranscript = useCallback(() => {
+    console.log('🗑️ Limpando transcricao');
     setTranscript('');
     setCurrentTranscript('');
-  };
+    setIsWakeWordActive(false);
+  }, []);
 
-  const clearTranscript = () => {
-    console.log('🗑️ Limpando transcript');
+  const toggleWakeWord = useCallback(() => {
+    setWakeWordEnabled(prev => {
+      console.log('🔄 Wake word:', !prev ? 'ativada' : 'desativada');
+      return !prev;
+    });
+    setIsWakeWordActive(false);
     setTranscript('');
     setCurrentTranscript('');
-  };
-
-  const toggleWakeWord = () => {
-    const newValue = !wakeWordEnabled;
-    setWakeWordEnabled(newValue);
-    console.log('🔒 Wake word:', newValue ? 'ATIVADA' : 'DESATIVADA');
-  };
+  }, []);
 
   return {
     isListening,
     transcript,
     currentTranscript,
     wakeWordEnabled,
+    isWakeWordActive,
     startListening,
     stopListening,
     sendCurrentTranscript,

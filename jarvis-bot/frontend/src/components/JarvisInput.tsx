@@ -59,7 +59,7 @@ export default function JarvisInput({
           style={{ color: '#ffffff', caretColor: '#00ffff' }}
         />
         
-        {/* Botao Enviar Texto - sempre visivel quando NAO esta no modo voz */}
+        {/* Botao Enviar Texto - quando NAO esta no modo voz */}
         {!isVoiceMode && (
           <button
             onClick={onSend}
@@ -68,36 +68,45 @@ export default function JarvisInput({
                        hover:scale-105 active:scale-95 transition-all
                        disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
                        shadow-[0_0_15px_rgba(0,255,255,0.4)]"
+            title="Enviar mensagem"
           >
             <Send className="w-6 h-6 text-[#0a0e27]" />
           </button>
         )}
         
-        {/* Botao Enviar Audio - aparece quando tem transcricao no modo voz */}
-        {isVoiceMode && hasTranscript && onSendVoice && (
+        {/* Botao Enviar Audio - SEMPRE visivel no modo voz */}
+        {isVoiceMode && onSendVoice && (
           <button
             onClick={onSendVoice}
-            className="bg-green-500 p-4 rounded-xl hover:scale-105 active:scale-95 transition-all
-                       shadow-[0_0_15px_rgba(0,255,0,0.4)]"
-            title="Enviar mensagem de voz"
+            disabled={!hasTranscript}
+            className={`p-4 rounded-xl hover:scale-105 active:scale-95 transition-all
+                       ${hasTranscript 
+                         ? 'bg-green-500 shadow-[0_0_15px_rgba(0,255,0,0.4)]' 
+                         : 'bg-green-500/30 opacity-50 cursor-not-allowed hover:scale-100'
+                       }`}
+            title={hasTranscript ? 'Enviar mensagem de voz' : 'Fale algo primeiro...'}
           >
             <Check className="w-6 h-6 text-white" />
           </button>
         )}
         
-        {/* Botao Cancelar Audio */}
-        {isVoiceMode && hasTranscript && onCancelVoice && (
+        {/* Botao Cancelar Audio - SEMPRE visivel no modo voz */}
+        {isVoiceMode && onCancelVoice && (
           <button
             onClick={onCancelVoice}
-            className="bg-red-500 p-4 rounded-xl hover:scale-105 active:scale-95 transition-all
-                       shadow-[0_0_15px_rgba(255,0,0,0.4)]"
-            title="Cancelar mensagem de voz"
+            disabled={!hasTranscript}
+            className={`p-4 rounded-xl hover:scale-105 active:scale-95 transition-all
+                       ${hasTranscript 
+                         ? 'bg-red-500 shadow-[0_0_15px_rgba(255,0,0,0.4)]' 
+                         : 'bg-red-500/30 opacity-50 cursor-not-allowed hover:scale-100'
+                       }`}
+            title={hasTranscript ? 'Cancelar mensagem' : 'Nada para cancelar'}
           >
             <X className="w-6 h-6 text-white" />
           </button>
         )}
         
-        {/* Botao Wake Word - so aparece no modo voz */}
+        {/* Botao Wake Word */}
         {isVoiceMode && onToggleWakeWord && (
           <button
             onClick={onToggleWakeWord}
@@ -139,7 +148,7 @@ export default function JarvisInput({
         
       </div>
       
-      {/* Indicadores de Status do Modo Voz */}
+      {/* Status do Modo Voz */}
       {isVoiceMode && (
         <div className="text-center text-sm mt-3 font-rajdhani space-y-1">
           <p className="text-cyan-400 font-semibold animate-pulse">
