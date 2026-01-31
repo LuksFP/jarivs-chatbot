@@ -42,7 +42,7 @@ export default function JarvisInterface() {
         handleSendMessage(text);
       }
     },
-    onError: (error) => {
+    onError: () => {
       setState('error');
       setTimeout(() => setState('idle'), 3000);
     },
@@ -78,7 +78,7 @@ export default function JarvisInterface() {
 
       setMessages((prev) => [...prev, assistantMessage]);
       setState(isVoiceMode ? 'listening' : 'idle');
-    } catch (error) {
+    } catch {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -135,7 +135,7 @@ export default function JarvisInterface() {
         
         {currentTranscript && isVoiceMode && (
           <div className="glass-effect border-glow rounded-2xl p-4 text-center animate-fade-in">
-            <p className="text-yellow-400 font-rajdhani text-lg">
+            <p className="text-yellow-400 font-rajdhani text-lg font-bold">
               📝 "{currentTranscript}"
             </p>
           </div>
