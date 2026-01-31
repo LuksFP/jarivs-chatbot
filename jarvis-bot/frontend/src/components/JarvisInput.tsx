@@ -1,4 +1,4 @@
-import { Send, Mic, MicOff, Loader2, X, Shield, ShieldOff } from 'lucide-react';
+import { Send, Mic, MicOff, Check, X, Shield, ShieldOff } from 'lucide-react';
 import type { JarvisState } from '@/types/jarvis';
 
 interface JarvisInputProps {
@@ -16,152 +16,132 @@ interface JarvisInputProps {
   hasTranscript?: boolean;
 }
 
-export default function JarvisInput({ 
-  value, 
-  onChange, 
-  onSend, 
-  onKeyPress, 
-  isVoiceMode, 
-  onToggleVoice, 
-  state, 
+export default function JarvisInput({
+  value,
+  onChange,
+  onSend,
+  onKeyPress,
+  isVoiceMode,
+  onToggleVoice,
+  state,
   onSendVoice,
   onCancelVoice,
   wakeWordEnabled = true,
   onToggleWakeWord,
-  hasTranscript = false
+  hasTranscript = false,
 }: JarvisInputProps) {
   const isDisabled = state === 'processing' || state === 'speaking';
-  const isListening = state === 'listening';
-  
+
   return (
-    <div className="glass-effect border-glow rounded-3xl p-6 shadow-2xl">
-      <div className="flex items-center gap-4">
-        
-        <div className="flex-1 relative group">
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            onKeyPress={onKeyPress}
-            placeholder={isVoiceMode ? 'Ã°Å¸Å½Â¤ Modo de voz ativado...' : 'Ã°Å¸â€™Â¬ Digite sua mensagem...'}
-            disabled={isDisabled || isVoiceMode}
-            className="w-full bg-gray-900/70 border-2 border-gray-700/50 rounded-2xl px-6 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:shadow-lg focus:shadow-cyan-400/20 transition-all duration-300 font-rajdhani text-base disabled:opacity-50 group-hover:border-gray-600"
-          />
-          {state === 'processing' && (
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-cyan-400 via-purple-400 to-cyan-400 rounded-full overflow-hidden">
-              <div className="h-full bg-white/50 animate-pulse" />
-            </div>
-          )}
+    <div className="glass-effect border-glow p-6 rounded-2xl">
+      
+      {(state === 'processing' || state === 'speaking') && (
+        <div className="h-1 bg-jarvis-dark rounded-full overflow-hidden mb-4">
+          <div className="h-full bg-gradient-to-r from-jarvis-primary to-jarvis-accent animate-pulse" 
+               style={{ width: state === 'speaking' ? '100%' : '60%' }} />
         </div>
+      )}
+      
+      <div className="flex gap-3 items-center">
         
-        <button 
-          onClick={onSend} 
-          disabled={isDisabled || !value.trim() || isVoiceMode} 
-          className="bg-gradient-to-br from-cyan-500 to-cyan-600 hover:from-cyan-400 hover:to-cyan-500 text-white p-4 rounded-2xl transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-cyan-400/30 hover:shadow-xl hover:shadow-cyan-400/40 hover:scale-105 active:scale-95"
-          title="Enviar mensagem de texto"
-        >
-          {state === 'processing' ? <Loader2 size={22} className="animate-spin" /> : <Send size={22} />}
-        </button>
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyPress={onKeyPress}
+          disabled={isDisabled || isVoiceMode}
+          placeholder={isVoiceMode ? 'Modo de voz ativo...' : 'Digite sua mensagem...'}
+          className="flex-1 bg-jarvis-dark/50 border border-jarvis-primary/30 rounded-xl px-6 py-4 
+                     text-jarvis-text placeholder-jarvis-secondary/50 
+                     focus:outline-none focus:border-jarvis-primary focus:glow-cyan
+                     disabled:opacity-50 disabled:cursor-not-allowed
+                     font-rajdhani text-lg transition-all"
+        />
         
-        {isVoiceMode && isListening && hasTranscript && (
-          <>
-            {onSendVoice && (
-              <button 
-                onClick={onSendVoice}
-                disabled={isDisabled}
-                className="bg-gradient-to-br from-green-500 to-green-600 hover:from-green-400 hover:to-green-500 text-white p-4 rounded-2xl transition-all duration-300 shadow-lg shadow-green-400/30 hover:shadow-xl hover:shadow-green-400/40 hover:scale-105 active:scale-95 animate-pulse"
-                title="Enviar mensagem de voz"
-              >
-                <Send size={22} />
-              </button>
-            )}
-            
-            {onCancelVoice && (
-              <button 
-                onClick={onCancelVoice}
-                disabled={isDisabled}
-                className="bg-gradient-to-br from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white p-4 rounded-2xl transition-all duration-300 shadow-lg shadow-red-400/30 hover:shadow-xl hover:shadow-red-400/40 hover:scale-105 active:scale-95"
-                title="Cancelar gravaÃƒÂ§ÃƒÂ£o"
-              >
-                <X size={22} />
-              </button>
-            )}
-          </>
-        )}
-        
-        {onToggleWakeWord && isVoiceMode && (
-          <button 
-            onClick={onToggleWakeWord}
-            disabled={isDisabled}
-            className={
-              wakeWordEnabled
-                ? 'bg-gradient-to-br from-purple-500 to-purple-600 text-white p-4 rounded-2xl shadow-xl shadow-purple-400/50 border-2 border-purple-300 transition-all duration-300 hover:scale-105 active:scale-95'
-                : 'bg-gray-800/70 border-2 border-gray-700/50 text-gray-400 hover:text-purple-400 hover:border-purple-400/50 p-4 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95'
-            }
-            title={wakeWordEnabled ? 'Wake Word: ATIVADA (clique para desativar)' : 'Wake Word: DESATIVADA (clique para ativar)'}
+        {!isVoiceMode && (
+          <button
+            onClick={onSend}
+            disabled={isDisabled || !value.trim()}
+            className="bg-gradient-to-r from-jarvis-primary to-jarvis-accent p-4 rounded-xl
+                       hover:scale-105 active:scale-95 transition-all
+                       disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100
+                       glow-cyan"
           >
-            {wakeWordEnabled ? <Shield size={22} /> : <ShieldOff size={22} />}
+            <Send className="w-6 h-6 text-jarvis-dark" />
           </button>
         )}
         
-        <button 
-          onClick={onToggleVoice} 
-          disabled={isDisabled} 
-          className={
-            isVoiceMode 
-              ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-4 rounded-2xl shadow-xl shadow-yellow-400/50 border-2 border-yellow-300 transition-all duration-300 hover:scale-105 active:scale-95 ' + (isListening ? 'animate-pulse' : ')
-              : 'bg-gray-800/70 border-2 border-gray-700/50 text-gray-400 hover:text-cyan-400 hover:border-cyan-400/50 p-4 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-30'
-          }
-          title={isVoiceMode ? 'Desativar modo de voz' : 'Ativar modo de voz'}
+        {isVoiceMode && hasTranscript && (
+          <>
+            <button
+              onClick={onSendVoice}
+              className="bg-green-500 p-4 rounded-xl hover:scale-105 active:scale-95 transition-all glow-cyan"
+              title="Enviar mensagem de voz"
+            >
+              <Check className="w-6 h-6 text-white" />
+            </button>
+            <button
+              onClick={onCancelVoice}
+              className="bg-red-500 p-4 rounded-xl hover:scale-105 active:scale-95 transition-all"
+              title="Cancelar mensagem de voz"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+          </>
+        )}
+        
+        {isVoiceMode && onToggleWakeWord && (
+          <button
+            onClick={onToggleWakeWord}
+            className={`p-4 rounded-xl transition-all border-2
+                       ${wakeWordEnabled 
+                         ? 'bg-blue-500/20 border-blue-500' 
+                         : 'bg-gray-500/20 border-gray-500'
+                       }
+                       hover:scale-105 active:scale-95`}
+            title={wakeWordEnabled ? 'Wake word ativada' : 'Wake word desativada'}
+          >
+            {wakeWordEnabled ? (
+              <Shield className="w-6 h-6 text-blue-400" />
+            ) : (
+              <ShieldOff className="w-6 h-6 text-gray-400" />
+            )}
+          </button>
+        )}
+        
+        <button
+          onClick={onToggleVoice}
+          disabled={isDisabled}
+          className={`p-4 rounded-xl transition-all border-2
+                     ${isVoiceMode 
+                       ? 'bg-jarvis-primary/20 border-jarvis-primary glow-cyan' 
+                       : 'bg-jarvis-dark/50 border-jarvis-primary/30'
+                     }
+                     hover:scale-105 active:scale-95
+                     disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
         >
-          {isVoiceMode ? <Mic size={22} /> : <MicOff size={22} />}
+          {isVoiceMode ? (
+            <Mic className="w-6 h-6 text-jarvis-primary" />
+          ) : (
+            <MicOff className="w-6 h-6 text-jarvis-secondary" />
+          )}
         </button>
         
       </div>
       
       {isVoiceMode && (
-        <div className="mt-5 p-4 bg-gradient-to-r from-yellow-500/10 via-yellow-400/10 to-yellow-500/10 border border-yellow-400/30 rounded-2xl backdrop-blur-sm animate-fade-in">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <div className="absolute inset-0 bg-yellow-400/30 blur-md rounded-full animate-pulse" />
-                <Mic className="relative w-5 h-5 text-yellow-400" />
-              </div>
-              <p className="text-yellow-400 text-sm font-rajdhani font-bold uppercase tracking-wider">
-                {isListening ? 'Ã°Å¸Å½Â¤ Gravando... Fale agora!' : 'Ã¢ÂÂ¸Ã¯Â¸Â Aguardando...'}
-              </p>
-            </div>
-            
-            {isListening && hasTranscript && (
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 text-xs text-green-300 font-rajdhani">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span>BotÃƒÂ£o VERDE para enviar</span>
-                </div>
-                <div className="h-4 w-px bg-yellow-400/30" />
-                <div className="flex items-center gap-2 text-xs text-red-300 font-rajdhani">
-                  <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
-                  <span>BotÃƒÂ£o VERMELHO para cancelar</span>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {wakeWordEnabled && (
-            <div className="mt-3 flex items-center gap-2 text-xs text-purple-300 font-rajdhani">
-              <Shield className="w-3 h-3" />
-              <span>Wake Word ativada - Diga "JARVIS" na primeira mensagem</span>
-            </div>
-          )}
-          
-          {!wakeWordEnabled && (
-            <div className="mt-3 flex items-center gap-2 text-xs text-gray-400 font-rajdhani">
-              <ShieldOff className="w-3 h-3" />
-              <span>Wake Word desativada - Pode falar direto!</span>
-            </div>
+        <div className="text-center text-sm mt-3 font-rajdhani space-y-1">
+          <p className="text-jarvis-secondary animate-pulse">
+            🎤 {wakeWordEnabled ? 'Diga "JARVIS" para ativar' : 'Modo livre - fale diretamente'}
+          </p>
+          {hasTranscript && (
+            <p className="text-green-400">
+              ✅ Mensagem pronta para enviar
+            </p>
           )}
         </div>
       )}
+      
     </div>
   );
 }
