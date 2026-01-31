@@ -1,6 +1,4 @@
 const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const DB_PATH = process.env.DB_PATH || path.join(__dirname, '..', 'database.sqlite');
 
 class Database {
     constructor() {
@@ -9,11 +7,11 @@ class Database {
     }
 
     init() {
-        this.db = new sqlite3.Database(DB_PATH, (err) => {
+        this.db = new sqlite3.Database(':memory:', (err) => {
             if (err) {
                 console.error('Erro ao conectar no banco:', err);
             } else {
-                console.log('Conectado ao banco SQLite');
+                console.log('Conectado ao banco SQLite (memoria)');
                 this.createTables();
             }
         });
@@ -21,9 +19,7 @@ class Database {
 
     createTables() {
         this.db.run('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, created_at DATETIME DEFAULT CURRENT_TIMESTAMP)');
-
         this.db.run('CREATE TABLE IF NOT EXISTS conversations (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, user_message TEXT NOT NULL, assistant_message TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id))');
-
         this.db.run('CREATE TABLE IF NOT EXISTS context (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NOT NULL, key TEXT NOT NULL, value TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (user_id) REFERENCES users(id), UNIQUE(user_id, key))', (err) => {
             if (err) {
                 console.error('Erro ao criar tabelas:', err);
