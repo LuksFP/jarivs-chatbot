@@ -28,7 +28,7 @@ class ContextModel {
     static async getAllContext(userId) {
         try {
             const contexts = await db.all(
-                'SELECT key, value FROM context WHERE user_id = ?"',
+                'SELECT key, value FROM context WHERE user_id = ?',
                 [userId]
             );
             const contextObj = {};
