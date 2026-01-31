@@ -461,7 +461,6 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 
 **Lukas**
 
-- GitHub: [@seu-usuario](https://github.com/seu-usuario)
 
 ---
 
@@ -471,6 +470,8 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para ma
 - [Groq](https://groq.com) pela API de IA
 - [React](https://react.dev) pela framework
 - [TailwindCSS](https://tailwindcss.com) pelos estilos
+- [Typescrit] para tipagem
+- 
 
 ---
 
