@@ -1,7 +1,10 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const chatRoutes = require('./routes/chat.routes');
+
+// IMPORTANTE: Inicializar banco de dados
+require('./database');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -11,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Logging middleware
+// Logging
 app.use((req, res, next) => {
     console.log('[' + new Date().toISOString() + ']', req.method, req.path);
     next();
@@ -29,7 +32,7 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/api/chat', chatRoutes);
 
-// 404 handler
+// 404
 app.use((req, res) => {
     res.status(404).json({ error: 'Rota não encontrada' });
 });
@@ -40,13 +43,13 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Erro interno do servidor' });
 });
 
-// Start server
+// Start
 app.listen(PORT, '0.0.0.0', () => {
     console.log('================================================');
     console.log('🤖 JARVIS Backend');
     console.log('================================================');
-    console.log('🚀 Servidor:', 'http://localhost:' + PORT);
-    console.log('📊 Health:', 'http://localhost:' + PORT + '/health');
+    console.log('🚀 Servidor: http://localhost:' + PORT);
+    console.log('📊 Health: http://localhost:' + PORT + '/health');
     console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
     console.log('================================================');
 });
