@@ -17,7 +17,7 @@ export default function JarvisInterface() {
 
   useEffect(() => { checkHealth().then((online) => { setIsBackendOnline(online); setState(online ? 'idle' : 'error'); }); }, []);
 
-  const { isListening, transcript, currentTranscript, wakeWordEnabled, startListening, stopListening, sendCurrentTranscript, clearTranscript, toggleWakeWord } = useSpeechRecognition({
+  const { isListening, transcript, currentTranscript, wakeWordEnabled, isWakeWordActive, startListening, stopListening, sendCurrentTranscript, clearTranscript, toggleWakeWord } = useSpeechRecognition({
     onWakeWordDetected: () => { setState('listening'); },
     onResult: (text) => { if (text.trim()) { handleSendMessage(text); } },
     onError: () => { setState('error'); setTimeout(() => setState('idle'), 3000); },
@@ -57,14 +57,19 @@ export default function JarvisInterface() {
         <div className="flex justify-center py-8"><JarvisOrb state={state} isListening={isListening} /></div>
         {isVoiceMode && (
           <div className="bg-[#0a0e27]/90 border-2 border-cyan-500 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,255,255,0.3)]">
-            <div className="flex items-center gap-2 mb-3">
-              <div className={`w-3 h-3 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
-              <span className="text-cyan-400 font-bold text-sm uppercase tracking-wider">{isListening ? 'Ouvindo...' : 'Microfone pausado'}</span>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${isListening ? 'bg-red-500 animate-pulse' : 'bg-gray-500'}`} />
+                <span className="text-cyan-400 font-bold text-sm uppercase tracking-wider">{isListening ? (isWakeWordActive ? 'Ouvindo voce...' : 'Aguardando "JARVIS"...') : 'Microfone pausado'}</span>
+              </div>
+              <button onClick={toggleWakeWord} className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${wakeWordEnabled ? 'bg-blue-500 text-white' : 'bg-gray-600 text-gray-300'}`}>
+                Wake Word: {wakeWordEnabled ? 'ON' : 'OFF'}
+              </button>
             </div>
             <div className="min-h-[80px] flex items-center justify-center">
-              {currentTranscript ? (<p className="text-white text-2xl font-rajdhani text-center leading-relaxed">{currentTranscript}</p>) : (<p className="text-gray-500 text-xl italic">Fale algo...</p>)}
+              <p className={`text-2xl font-rajdhani text-center leading-relaxed ${transcript ? 'text-white' : 'text-gray-500 italic'}`}>{currentTranscript || 'Fale algo...'}</p>
             </div>
-            {currentTranscript && (
+            {transcript && (
               <div className="flex justify-center gap-4 mt-4">
                 <button onClick={handleSendVoiceMessage} className="bg-green-500 hover:bg-green-600 text-white px-8 py-3 rounded-xl font-bold text-lg transition-all hover:scale-105 shadow-[0_0_15px_rgba(0,255,0,0.4)]">ENVIAR</button>
                 <button onClick={handleCancelVoiceMessage} className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-xl font-bold text-lg transition-all hover:scale-105 shadow-[0_0_15px_rgba(255,0,0,0.4)]">LIMPAR</button>
@@ -76,7 +81,7 @@ export default function JarvisInterface() {
       </div>
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#0a0e27] via-[#0a0e27] to-transparent backdrop-blur-md border-t border-cyan-500/20 p-6 z-50">
         <div className="w-full max-w-5xl mx-auto">
-          <JarvisInput value={inputValue} onChange={setInputValue} onSend={() => handleSendMessage(inputValue)} onKeyPress={handleKeyPress} isVoiceMode={isVoiceMode} onToggleVoice={handleToggleVoice} state={state} onSendVoice={handleSendVoiceMessage} onCancelVoice={handleCancelVoiceMessage} wakeWordEnabled={wakeWordEnabled} onToggleWakeWord={toggleWakeWord} hasTranscript={!!currentTranscript} />
+          <JarvisInput value={inputValue} onChange={setInputValue} onSend={() => handleSendMessage(inputValue)} onKeyPress={handleKeyPress} isVoiceMode={isVoiceMode} onToggleVoice={handleToggleVoice} state={state} onSendVoice={handleSendVoiceMessage} onCancelVoice={handleCancelVoiceMessage} wakeWordEnabled={wakeWordEnabled} onToggleWakeWord={toggleWakeWord} hasTranscript={!!transcript} />
         </div>
       </div>
     </div>
