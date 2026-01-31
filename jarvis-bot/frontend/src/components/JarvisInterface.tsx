@@ -10,7 +10,7 @@ import type { JarvisState, Message } from '@/types/jarvis';
 export default function JarvisInterface() {
   const [state, setState] = useState<JarvisState>('initializing');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState(');
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isBackendOnline, setIsBackendOnline] = useState(false);
   
@@ -63,7 +63,7 @@ export default function JarvisInterface() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
+    setInputValue(');
     setState('processing');
 
     try {
@@ -136,7 +136,7 @@ export default function JarvisInterface() {
         {currentTranscript && isVoiceMode && (
           <div className="glass-effect border-glow rounded-2xl p-4 text-center animate-fade-in">
             <p className="text-yellow-400 font-rajdhani text-lg">
-              ðŸ“ "{currentTranscript}"
+              Ã°Å¸â€œÂ "{currentTranscript}"
             </p>
           </div>
         )}
