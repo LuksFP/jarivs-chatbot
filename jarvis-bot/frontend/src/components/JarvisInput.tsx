@@ -52,7 +52,7 @@ export default function JarvisInput({
           disabled={isDisabled || isVoiceMode}
           placeholder={isVoiceMode ? 'Modo de voz ativo...' : 'Digite sua mensagem...'}
           className="flex-1 bg-jarvis-dark/50 border border-jarvis-primary/30 rounded-xl px-6 py-4 
-                     text-jarvis-text placeholder-jarvis-secondary/50 
+                     text-white placeholder-gray-500
                      focus:outline-none focus:border-jarvis-primary focus:glow-cyan
                      disabled:opacity-50 disabled:cursor-not-allowed
                      font-rajdhani text-lg transition-all"
@@ -71,23 +71,24 @@ export default function JarvisInput({
           </button>
         )}
         
-        {isVoiceMode && hasTranscript && (
-          <>
-            <button
-              onClick={onSendVoice}
-              className="bg-green-500 p-4 rounded-xl hover:scale-105 active:scale-95 transition-all glow-cyan"
-              title="Enviar mensagem de voz"
-            >
-              <Check className="w-6 h-6 text-white" />
-            </button>
-            <button
-              onClick={onCancelVoice}
-              className="bg-red-500 p-4 rounded-xl hover:scale-105 active:scale-95 transition-all"
-              title="Cancelar mensagem de voz"
-            >
-              <X className="w-6 h-6 text-white" />
-            </button>
-          </>
+        {isVoiceMode && hasTranscript && onSendVoice && (
+          <button
+            onClick={onSendVoice}
+            className="bg-green-500 p-4 rounded-xl hover:scale-105 active:scale-95 transition-all glow-cyan"
+            title="Enviar mensagem de voz"
+          >
+            <Check className="w-6 h-6 text-white" />
+          </button>
+        )}
+        
+        {isVoiceMode && hasTranscript && onCancelVoice && (
+          <button
+            onClick={onCancelVoice}
+            className="bg-red-500 p-4 rounded-xl hover:scale-105 active:scale-95 transition-all"
+            title="Cancelar mensagem de voz"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
         )}
         
         {isVoiceMode && onToggleWakeWord && (
@@ -119,11 +120,12 @@ export default function JarvisInput({
                      }
                      hover:scale-105 active:scale-95
                      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100`}
+          title={isVoiceMode ? 'Desativar modo voz' : 'Ativar modo voz'}
         >
           {isVoiceMode ? (
             <Mic className="w-6 h-6 text-jarvis-primary" />
           ) : (
-            <MicOff className="w-6 h-6 text-jarvis-secondary" />
+            <MicOff className="w-6 h-6 text-gray-400" />
           )}
         </button>
         
@@ -131,12 +133,12 @@ export default function JarvisInput({
       
       {isVoiceMode && (
         <div className="text-center text-sm mt-3 font-rajdhani space-y-1">
-          <p className="text-jarvis-secondary animate-pulse">
+          <p className="text-cyan-400 font-semibold animate-pulse">
             🎤 {wakeWordEnabled ? 'Diga "JARVIS" para ativar' : 'Modo livre - fale diretamente'}
           </p>
           {hasTranscript && (
-            <p className="text-green-400">
-              ✅ Mensagem pronta para enviar
+            <p className="text-green-400 font-bold">
+              ✅ Mensagem pronta - clique no ✓ para enviar
             </p>
           )}
         </div>
