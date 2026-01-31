@@ -1,16 +1,21 @@
-﻿require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const chatRoutes = require('./routes/chat.routes');
 
-// IMPORTANTE: Inicializar banco de dados
-require('./database');
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// CORS - permite todas as origens
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+}));
+
 // Middlewares
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -43,13 +48,11 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Erro interno do servidor' });
 });
 
-// Start
 app.listen(PORT, '0.0.0.0', () => {
     console.log('================================================');
     console.log('🤖 JARVIS Backend');
     console.log('================================================');
     console.log('🚀 Servidor: http://localhost:' + PORT);
-    console.log('📊 Health: http://localhost:' + PORT + '/health');
     console.log('🌍 Environment:', process.env.NODE_ENV || 'development');
     console.log('================================================');
 });
