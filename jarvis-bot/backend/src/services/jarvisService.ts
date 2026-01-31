@@ -21,7 +21,11 @@ export interface Message {
 function getUserId(): string {
   let userId = localStorage.getItem('jarvis_user_id');
   if (!userId) {
-    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    userId =
+      'user_' +
+      Date.now() +
+      '_' +
+      Math.random().toString(36).substring(2, 11);
     localStorage.setItem('jarvis_user_id', userId);
   }
   return userId;
@@ -36,8 +40,8 @@ export async function sendMessage(
 ): Promise<ChatResponse> {
   try {
     console.log('📤 Enviando mensagem:', message);
-    
-    const response = await fetch(\\/api/chat\, {
+
+    const response = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -50,13 +54,13 @@ export async function sendMessage(
     });
 
     if (!response.ok) {
-      throw new Error(\Erro HTTP: \\);
+      throw new Error(`Erro HTTP: ${response.status}`);
     }
 
     const data: ChatResponse = await response.json();
-    
+
     console.log('✅ Resposta recebida:', data);
-    
+
     return data;
   } catch (error) {
     console.error('❌ Erro ao enviar mensagem:', error);
@@ -70,21 +74,24 @@ export async function sendMessage(
 export async function playAudio(audioUrl: string): Promise<void> {
   try {
     console.log('🔊 Reproduzindo áudio:', audioUrl);
-    
-    const fullUrl = \\\\;
+
+    const fullUrl = audioUrl.startsWith('http')
+      ? audioUrl
+      : `${API_URL}${audioUrl}`;
+
     const audio = new Audio(fullUrl);
-    
+
     return new Promise((resolve, reject) => {
       audio.onended = () => {
         console.log('✅ Áudio finalizado');
         resolve();
       };
-      
+
       audio.onerror = (error) => {
         console.error('❌ Erro ao reproduzir áudio:', error);
         reject(error);
       };
-      
+
       audio.play().catch(reject);
     });
   } catch (error) {
@@ -98,9 +105,11 @@ export async function playAudio(audioUrl: string): Promise<void> {
  */
 export async function checkHealth(): Promise<boolean> {
   try {
-    const response = await fetch(\\/health\);
+    const response = await fetch(`${API_URL}/health`);
     const data = await response.json();
+
     console.log('💚 Backend online:', data);
+
     return data.status === 'online';
   } catch (error) {
     console.error('❌ Backend offline:', error);

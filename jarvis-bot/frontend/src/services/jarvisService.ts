@@ -1,4 +1,4 @@
-﻿const API_URL = 'http://localhost:3000';
+﻿const API_URL = import.meta.env.VITE_API_URL || 'https://jarivs-chatbot-production.up.railway.app';
 
 export interface ChatResponse {
   success: boolean;
@@ -31,9 +31,10 @@ export async function sendMessage(
   useVoice: boolean = false
 ): Promise<ChatResponse> {
   try {
-    console.log('📤 Enviando mensagem:', message);
+    console.log('📤 Enviando para:', API_URL + '/api/chat');
+    console.log('📝 Mensagem:', message);
     
-    const response = await fetch(`${API_URL}/api/chat`, {
+    const response = await fetch(\\/api/chat\, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -46,22 +47,29 @@ export async function sendMessage(
     });
 
     if (!response.ok) {
-      throw new Error(`Erro HTTP: ${response.status}`);
+      const errorText = await response.text();
+      console.error('❌ Erro HTTP:', response.status, errorText);
+      throw new Error(\Erro HTTP: \\);
     }
 
     const data: ChatResponse = await response.json();
-    console.log('✅ Resposta recebida:', data);
+    console.log('✅ Resposta:', data);
+    
     return data;
   } catch (error) {
-    console.error('❌ Erro ao enviar mensagem:', error);
+    console.error('❌ Erro:', error);
     throw error;
   }
 }
 
 export async function playAudio(audioUrl: string): Promise<void> {
   try {
-    console.log('🔊 Reproduzindo áudio:', audioUrl);
-    const fullUrl = `${API_URL}${audioUrl}`;
+    console.log('🔊 Reproduzindo:', audioUrl);
+    
+    const fullUrl = audioUrl.startsWith('http') 
+      ? audioUrl 
+      : \\\\;
+    
     const audio = new Audio(fullUrl);
     
     return new Promise((resolve, reject) => {
@@ -69,23 +77,31 @@ export async function playAudio(audioUrl: string): Promise<void> {
         console.log('✅ Áudio finalizado');
         resolve();
       };
+      
       audio.onerror = (error) => {
-        console.error('❌ Erro ao reproduzir áudio:', error);
+        console.error('❌ Erro áudio:', error);
         reject(error);
       };
+      
       audio.play().catch(reject);
     });
   } catch (error) {
-    console.error('❌ Erro no playAudio:', error);
+    console.error('❌ Erro playAudio:', error);
     throw error;
   }
 }
 
 export async function checkHealth(): Promise<boolean> {
   try {
-    const response = await fetch(`${API_URL}/health`);
+    const response = await fetch(\\/health\, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+    
     const data = await response.json();
-    console.log('💚 Backend online:', data);
+    console.log('💚 Backend:', data);
     return data.status === 'online';
   } catch (error) {
     console.error('❌ Backend offline:', error);
