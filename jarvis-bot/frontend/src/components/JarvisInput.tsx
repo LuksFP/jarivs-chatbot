@@ -43,7 +43,7 @@ export default function JarvisInput({
             value={value}
             onChange={(e) => onChange(e.target.value)}
             onKeyPress={onKeyPress}
-            placeholder={isVoiceMode ? '🎤 Modo de voz ativado...' : '💬 Digite sua mensagem...'}
+            placeholder={isVoiceMode ? 'ðŸŽ¤ Modo de voz ativado...' : 'ðŸ’¬ Digite sua mensagem...'}
             disabled={isDisabled || isVoiceMode}
             className="w-full bg-gray-900/70 border-2 border-gray-700/50 rounded-2xl px-6 py-4 text-white placeholder-gray-500 focus:outline-none focus:border-cyan-400 focus:shadow-lg focus:shadow-cyan-400/20 transition-all duration-300 font-rajdhani text-base disabled:opacity-50 group-hover:border-gray-600"
           />
@@ -81,7 +81,7 @@ export default function JarvisInput({
                 onClick={onCancelVoice}
                 disabled={isDisabled}
                 className="bg-gradient-to-br from-red-500 to-red-600 hover:from-red-400 hover:to-red-500 text-white p-4 rounded-2xl transition-all duration-300 shadow-lg shadow-red-400/30 hover:shadow-xl hover:shadow-red-400/40 hover:scale-105 active:scale-95"
-                title="Cancelar gravação"
+                title="Cancelar gravaÃ§Ã£o"
               >
                 <X size={22} />
               </button>
@@ -109,7 +109,7 @@ export default function JarvisInput({
           disabled={isDisabled} 
           className={
             isVoiceMode 
-              ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-4 rounded-2xl shadow-xl shadow-yellow-400/50 border-2 border-yellow-300 transition-all duration-300 hover:scale-105 active:scale-95 ' + (isListening ? 'animate-pulse' : '')
+              ? 'bg-gradient-to-br from-yellow-500 to-yellow-600 text-white p-4 rounded-2xl shadow-xl shadow-yellow-400/50 border-2 border-yellow-300 transition-all duration-300 hover:scale-105 active:scale-95 ' + (isListening ? 'animate-pulse' : ')
               : 'bg-gray-800/70 border-2 border-gray-700/50 text-gray-400 hover:text-cyan-400 hover:border-cyan-400/50 p-4 rounded-2xl transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-30'
           }
           title={isVoiceMode ? 'Desativar modo de voz' : 'Ativar modo de voz'}
@@ -128,7 +128,7 @@ export default function JarvisInput({
                 <Mic className="relative w-5 h-5 text-yellow-400" />
               </div>
               <p className="text-yellow-400 text-sm font-rajdhani font-bold uppercase tracking-wider">
-                {isListening ? '🎤 Gravando... Fale agora!' : '⏸️ Aguardando...'}
+                {isListening ? 'ðŸŽ¤ Gravando... Fale agora!' : 'â¸ï¸ Aguardando...'}
               </p>
             </div>
             
@@ -136,12 +136,12 @@ export default function JarvisInput({
               <div className="flex items-center gap-4">
                 <div className="flex items-center gap-2 text-xs text-green-300 font-rajdhani">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                  <span>Botão VERDE para enviar</span>
+                  <span>BotÃ£o VERDE para enviar</span>
                 </div>
                 <div className="h-4 w-px bg-yellow-400/30" />
                 <div className="flex items-center gap-2 text-xs text-red-300 font-rajdhani">
                   <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
-                  <span>Botão VERMELHO para cancelar</span>
+                  <span>BotÃ£o VERMELHO para cancelar</span>
                 </div>
               </div>
             )}
