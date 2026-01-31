@@ -1,19 +1,20 @@
-import { useState, useEffect, useRef } from 'react';
-import type { SpeechRecognitionOptions } from '@/types/jarvis';
+import { useState, useEffect, useRef } from ''react'';
+import type { SpeechRecognitionOptions } from ''@/types/jarvis'';
 
 export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
   const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState('');
-  const [currentTranscript, setCurrentTranscript] = useState('');
+  const [transcript, setTranscript] = useState('''');
+  const [currentTranscript, setCurrentTranscript] = useState('''');
+  const [wakeWordEnabled, setWakeWordEnabled] = useState(true);
   const recognitionRef = useRef<any>(null);
   const wakeWordDetected = useRef(false);
   const sessionActive = useRef(false);
 
   useEffect(() => {
-    console.log('🔧 Inicializando Speech Recognition...');
+    console.log(''🔧 Inicializando Speech Recognition...'');
     
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      console.error('❌ Speech Recognition não suportado');
+    if (!(''webkitSpeechRecognition'' in window) && !(''SpeechRecognition'' in window)) {
+      console.error(''❌ Speech Recognition não suportado'');
       return;
     }
 
@@ -22,31 +23,31 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
     
     recognitionRef.current.continuous = true;
     recognitionRef.current.interimResults = true;
-    recognitionRef.current.lang = 'pt-BR';
+    recognitionRef.current.lang = ''pt-BR'';
     recognitionRef.current.maxAlternatives = 1;
 
-    console.log('✅ Speech Recognition configurado!');
+    console.log(''✅ Speech Recognition configurado!'');
 
     recognitionRef.current.onstart = () => {
-      console.log('🎤 Reconhecimento iniciado');
+      console.log(''🎤 Reconhecimento iniciado'');
     };
 
     recognitionRef.current.onend = () => {
-      console.log('🛑 Reconhecimento encerrado');
+      console.log(''🛑 Reconhecimento encerrado'');
       if (isListening) {
         setTimeout(() => {
           try {
             recognitionRef.current?.start();
           } catch (error) {
-            console.log('Erro ao reiniciar');
+            console.log(''Erro ao reiniciar'');
           }
         }, 100);
       }
     };
 
     recognitionRef.current.onresult = (event: any) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
+      let finalTranscript = '''';
+      let interimTranscript = '''';
       
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcriptPart = event.results[i][0].transcript;
@@ -62,41 +63,49 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
 
       if (finalTranscript) {
         const lowerTranscript = finalTranscript.toLowerCase().trim();
-        console.log('📝 Transcript final:', lowerTranscript);
+        console.log(''📝 Transcript final:'', lowerTranscript);
         
+        // Se wake word está DESABILITADA, aceita qualquer fala
+        if (!wakeWordEnabled) {
+          console.log(''💬 Wake word desabilitada - aceitando fala:'', finalTranscript);
+          setTranscript(finalTranscript);
+          return;
+        }
+        
+        // Se wake word está HABILITADA, verifica
         if (!wakeWordDetected.current && !sessionActive.current) {
-          const wakeWords = ['jarvis', 'jarviz', 'jarves', 'oi jarvis', 'ei jarvis', 'hey jarvis'];
+          const wakeWords = [''jarvis'', ''jarviz'', ''jarves'', ''oi jarvis'', ''ei jarvis'', ''hey jarvis''];
           const hasWakeWord = wakeWords.some(word => lowerTranscript.includes(word));
           
           if (hasWakeWord) {
-            console.log('🎯 WAKE WORD DETECTADA! Sessão iniciada');
+            console.log(''🎯 WAKE WORD DETECTADA! Sessão iniciada'');
             wakeWordDetected.current = true;
             sessionActive.current = true;
             options.onWakeWordDetected?.();
             
             let cleanedTranscript = lowerTranscript;
             wakeWords.forEach(word => {
-              cleanedTranscript = cleanedTranscript.replace(word, '').trim();
+              cleanedTranscript = cleanedTranscript.replace(word, '''').trim();
             });
             
             if (cleanedTranscript) {
               setTranscript(cleanedTranscript);
             } else {
-              setTranscript('');
+              setTranscript('''');
             }
           }
         } else {
-          console.log('💬 Fala capturada (sessão ativa):', finalTranscript);
+          console.log(''💬 Fala capturada (sessão ativa):'', finalTranscript);
           setTranscript(finalTranscript);
         }
       }
     };
 
     recognitionRef.current.onerror = (event: any) => {
-      console.error('❌ Erro:', event.error);
+      console.error(''❌ Erro:'', event.error);
       
-      if (event.error === 'not-allowed') {
-        alert('⚠️ Permissão de microfone negada!');
+      if (event.error === ''not-allowed'') {
+        alert(''⚠️ Permissão de microfone negada!'');
       }
       
       options.onError?.(event.error);
@@ -107,27 +116,34 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
         try {
           recognitionRef.current.stop();
         } catch (error) {
-          console.log('Já estava parado');
+          console.log(''Já estava parado'');
         }
       }
     };
-  }, []);
+  }, [wakeWordEnabled]);
 
   const startListening = () => {
     if (!recognitionRef.current || isListening) return;
     
-    console.log('🎤 Iniciando escuta...');
+    console.log(''🎤 Iniciando escuta...'');
     setIsListening(true);
-    setTranscript('');
-    setCurrentTranscript('');
-    wakeWordDetected.current = false;
-    sessionActive.current = false;
+    setTranscript('''');
+    setCurrentTranscript('''');
+    
+    // Se wake word estiver desabilitada, não precisa detectar
+    if (!wakeWordEnabled) {
+      wakeWordDetected.current = true;
+      sessionActive.current = true;
+    } else {
+      wakeWordDetected.current = false;
+      sessionActive.current = false;
+    }
     
     try {
       recognitionRef.current.start();
-      console.log('✅ Escuta iniciada!');
+      console.log(''✅ Escuta iniciada!'');
     } catch (error) {
-      console.error('❌ Erro ao iniciar:', error);
+      console.error(''❌ Erro ao iniciar:'', error);
       setIsListening(false);
     }
   };
@@ -135,7 +151,7 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
   const stopListening = () => {
     if (!recognitionRef.current || !isListening) return;
     
-    console.log('🛑 Parando escuta...');
+    console.log(''🛑 Parando escuta...'');
     setIsListening(false);
     wakeWordDetected.current = false;
     sessionActive.current = false;
@@ -143,32 +159,39 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
     try {
       recognitionRef.current.stop();
     } catch (error) {
-      console.error('❌ Erro ao parar:', error);
+      console.error(''❌ Erro ao parar:'', error);
     }
   };
 
   const sendCurrentTranscript = () => {
     if (transcript.trim()) {
-      console.log('📤 Enviando transcript:', transcript);
+      console.log(''📤 Enviando transcript:'', transcript);
       options.onResult?.(transcript);
-      setTranscript('');
-      setCurrentTranscript('');
+      setTranscript('''');
+      setCurrentTranscript('''');
     }
   };
 
   const clearTranscript = () => {
-    console.log('🗑️ Limpando transcript');
-    setTranscript('');
-    setCurrentTranscript('');
+    console.log(''🗑️ Limpando transcript'');
+    setTranscript('''');
+    setCurrentTranscript('''');
+  };
+
+  const toggleWakeWord = () => {
+    setWakeWordEnabled(!wakeWordEnabled);
+    console.log(''🔒 Wake word:'', !wakeWordEnabled ? ''ATIVADA'' : ''DESATIVADA'');
   };
 
   return {
     isListening,
     transcript,
     currentTranscript,
+    wakeWordEnabled,
     startListening,
     stopListening,
     sendCurrentTranscript,
     clearTranscript,
+    toggleWakeWord,
   };
 }

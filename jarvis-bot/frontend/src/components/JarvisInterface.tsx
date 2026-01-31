@@ -1,16 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
-import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
-import { sendMessage, checkHealth } from '@/services/jarvisService';
-import JarvisOrb from './JarvisOrb';
-import JarvisHeader from './JarvisHeader';
-import JarvisMessages from './JarvisMessages';
-import JarvisInput from './JarvisInput';
-import type { JarvisState, Message } from '@/types/jarvis';
+import { useState, useEffect, useRef } from ''react'';
+import { useSpeechRecognition } from ''@/hooks/useSpeechRecognition'';
+import { sendMessage, checkHealth } from ''@/services/jarvisService'';
+import JarvisOrb from ''./JarvisOrb'';
+import JarvisHeader from ''./JarvisHeader'';
+import JarvisMessages from ''./JarvisMessages'';
+import JarvisInput from ''./JarvisInput'';
+import type { JarvisState, Message } from ''@/types/jarvis'';
 
 export default function JarvisInterface() {
-  const [state, setState] = useState<JarvisState>('initializing');
+  const [state, setState] = useState<JarvisState>(''initializing'');
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState('''');
   const [isVoiceMode, setIsVoiceMode] = useState(false);
   const [isBackendOnline, setIsBackendOnline] = useState(false);
   
@@ -19,7 +19,7 @@ export default function JarvisInterface() {
   useEffect(() => {
     checkHealth().then((online) => {
       setIsBackendOnline(online);
-      setState(online ? 'idle' : 'error');
+      setState(online ? ''idle'' : ''error'');
     });
   }, []);
 
@@ -27,13 +27,15 @@ export default function JarvisInterface() {
     isListening,
     transcript,
     currentTranscript,
+    wakeWordEnabled,
     startListening,
     stopListening,
     sendCurrentTranscript,
     clearTranscript,
+    toggleWakeWord,
   } = useSpeechRecognition({
     onWakeWordDetected: () => {
-      setState('listening');
+      setState(''listening'');
     },
     onResult: (text) => {
       if (text.trim()) {
@@ -41,13 +43,13 @@ export default function JarvisInterface() {
       }
     },
     onError: (error) => {
-      setState('error');
-      setTimeout(() => setState('idle'), 3000);
+      setState(''error'');
+      setTimeout(() => setState(''idle''), 3000);
     },
   });
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: ''smooth'' });
   }, [messages, state]);
 
   const handleSendMessage = async (text: string) => {
@@ -55,38 +57,38 @@ export default function JarvisInterface() {
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      role: 'user',
+      role: ''user'',
       content: text,
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInputValue('');
-    setState('processing');
+    setInputValue('''');
+    setState(''processing'');
 
     try {
       const response = await sendMessage(text, false);
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: 'assistant',
+        role: ''assistant'',
         content: response.response,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-      setState(isVoiceMode ? 'listening' : 'idle');
+      setState(isVoiceMode ? ''listening'' : ''idle'');
     } catch (error) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Erro ao processar mensagem.',
+        role: ''assistant'',
+        content: ''Erro ao processar mensagem.'',
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, errorMessage]);
-      setState('error');
-      setTimeout(() => setState(isVoiceMode ? 'listening' : 'idle'), 3000);
+      setState(''error'');
+      setTimeout(() => setState(isVoiceMode ? ''listening'' : ''idle''), 3000);
     }
   };
 
@@ -97,7 +99,7 @@ export default function JarvisInterface() {
     } else {
       setIsVoiceMode(false);
       stopListening();
-      setState('idle');
+      setState(''idle'');
     }
   };
 
@@ -109,11 +111,11 @@ export default function JarvisInterface() {
 
   const handleCancelVoiceMessage = () => {
     clearTranscript();
-    setState('listening');
+    setState(''listening'');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === ''Enter'' && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage(inputValue);
     }
@@ -159,6 +161,9 @@ export default function JarvisInterface() {
             state={state}
             onSendVoice={handleSendVoiceMessage}
             onCancelVoice={handleCancelVoiceMessage}
+            wakeWordEnabled={wakeWordEnabled}
+            onToggleWakeWord={toggleWakeWord}
+            hasTranscript={!!transcript.trim()}
           />
         </div>
       </div>
