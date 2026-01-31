@@ -1,5 +1,6 @@
-﻿node_modules/
+node_modules/
 .env
-*.sqlite
+database.sqlite
+audio_cache/
 *.log
-audio_cache/*.mp3
+.DS_Store
